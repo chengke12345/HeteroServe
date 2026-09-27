@@ -1,0 +1,156 @@
+====== HeteroService 硬件验证 ======
+[1/8] CPU 信息
+Model name:                              Intel(R) Core(TM) i7-7700 CPU @ 3.60GHz
+Thread(s) per core:                      2
+Core(s) per socket:                      4
+CPU(s) scaling MHz:                      67%
+CPU max MHz:                             4200.0000
+CPU min MHz:                             800.0000
+[2/8] 内存配置
+	Size: 8 GB
+	Speed: 2667 MT/s
+	Configured Memory Speed: 2666 MT/s
+	Configured Voltage: 1.2 V
+	Size: 8 GB
+	Speed: 2667 MT/s
+	Configured Memory Speed: 2666 MT/s
+	Configured Voltage: 1.2 V
+	Size: 8 GB
+	Speed: 2667 MT/s
+	Configured Memory Speed: 2666 MT/s
+	Configured Voltage: 1.2 V
+	Size: 8 GB
+	Speed: 2667 MT/s
+	Configured Memory Speed: 2666 MT/s
+	Configured Voltage: 1.2 V
+[3/8] GPU 列表
+name, memory.total [MiB], driver_version
+NVIDIA GeForce RTX 2080 Ti, 22528 MiB, 590.48.01
+NVIDIA GeForce RTX 2080 Ti, 22528 MiB, 590.48.01
+NVIDIA GeForce RTX 2080 Ti, 22528 MiB, 590.48.01
+[4/8] PCIe 拓扑
+	[4mGPU0	GPU1	GPU2	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
+GPU0	 X 	PHB	PHB	0-7	0		N/A
+GPU1	PHB	 X 	PHB	0-7	0		N/A
+GPU2	PHB	PHB	 X 	0-7	0		N/A
+
+Legend:
+
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
+  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
+  PIX  = Connection traversing at most a single PCIe bridge
+  NV#  = Connection traversing a bonded set of # NVLinks
+[5/8] PCIe 链路速度
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 2.5GT/s, Width x8
+--
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 2.5GT/s, Width x8
+--
+00:02.0 VGA compatible controller: Intel Corporation HD Graphics 630 (rev 04) (prog-if 00 [VGA controller])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 8GT/s, Width x2
+--
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 2.5GT/s, Width x4
+--
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 2.5GT/s, Width x0
+--
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 8GT/s, Width x2
+--
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	BridgeCtl: Parity- SERR+ NoISA- VGA- VGA16+ MAbort- >Reset- FastB2B-
+		LnkSta:	Speed 2.5GT/s, Width x0
+--
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+01:00.0 VGA compatible controller: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti] (rev a1) (prog-if 00 [VGA controller])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+02:00.0 VGA compatible controller: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti] (rev a1) (prog-if 00 [VGA controller])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x8 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 8GT/s, Width x2 (downgraded)
+--
+04:00.0 VGA compatible controller: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti] (rev a1) (prog-if 00 [VGA controller])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x4 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x4 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x4 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 2.5GT/s (downgraded), Width x4 (downgraded)
+--
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+		LnkSta:	Speed 8GT/s, Width x2
+[6/8] 系统盘类型
+NAME    ROTA TRAN     SIZE MODEL
+loop0      0            4K 
+loop1      0        251.7M 
+loop2      0         66.8M 
+loop3      0           74M 
+loop4      0         18.5M 
+loop5      0           74M 
+loop6      0        531.4M 
+loop7      0         91.7M 
+loop8      0         10.8M 
+loop9      0         15.7M 
+loop10     0        606.1M 
+loop11     0          395M 
+loop12     0        226.6M 
+loop13     0         48.1M 
+loop14     0         49.3M 
+loop15     0          576K 
+nvme0n1    0 nvme   476.9G TANLR TN350 512GB
+[7/8] NVME 速度
+[8/8] 内存与swap状态
+               total        used        free      shared  buff/cache   available
+内存：          31Gi       3.1Gi        26Gi       1.2Gi       3.3Gi        28Gi
+交换：         8.0Gi          0B       8.0Gi
+Filename				Type		Size		Used		Priority
+/swap.img                               file		8388604		0		-2
+验证完成

@@ -1,0 +1,6 @@
+.obsidian/
+.DS_Store
+ANOMALIES.md
+demo-app2.mp4
+__pycache__/
+*.pyc

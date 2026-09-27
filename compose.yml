@@ -1,0 +1,220 @@
+name: heteroserve
+
+# 主/备模型会复用 GPU 0，1，因此必须使用互斥 profile, 不能同时启动
+x-vllm-common: &vllm-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      VLLM_VERSION: "${VLLM_VERSION:-v0.21.0}"
+  image: "heteroserver/vllm-openai:${VLLM_VERSION:-v0.21.0}-sm75"
+  init: true
+  restart: unless-stopped
+  ipc: host
+  stop_grace_period: 2m
+  environment:
+    CUDA_DEVICE_ORDER: PCI_BUS_ID
+    VLLM_LOGGING_LEVEL: "${VLLM_LOGGING_LEVEL:-INFO}"
+    NCCL_DEBUG: "${NCCL_DEBUG:-WARN}"
+    HF_HOME: /root/.cache/huggingface
+    HF_HUB_OFFLINE: "${HF_HUB_OFFLINE:-1}"
+  volumes:
+    - type: bind
+      source: "${MODEL_ROOT:-/opt/models}"
+      target: /opt/models
+      read_only: true
+    - type: volume
+      source: hf-cache
+      target: /root/.cache/huggingface
+  healthcheck:
+    test:
+      - CMD
+      - python
+      - -c
+      - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+    interval: 30s
+    timeout: 10s
+    retries: 5
+    start_period: 10m
+  ulimits:
+    memlock: -1
+    stack: 67108864
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: "3"
+
+services:
+  # 主模型： 3张 Turing/SM75 GPU, 使用 pp=3
+  # Qwen3-32B-AWQ 为 FP16 activation + AWQ 4-bit weight
+
+  #---------- main vllm serve ---------
+  vllm-main:
+    <<: *vllm-common
+    profiles: [main]
+    ports:
+      - "8001:8000"
+    networks:
+      default:
+        aliases:
+          - vllm-active
+    command:
+      - "${MAIN_MODEL_PATH:-/opt/models/Qwen3-32B-AWQ}"
+      - --served-model-name
+      - "${MAIN_SERVED_MODEL_NAME:-qwen3-32b-awq}"
+      - --pipeline-parallel-size
+      - "3"
+      - --tensor-parallel-size
+      - "1"
+      - --dtype
+      - float16
+      - --quantization
+      - awq_marlin
+      - --gpu-memory-utilization
+      - "${GPU_MEMORY_UTILIZATION:-0.9}"
+      - --max-model-len
+      - "${MAIN_MAX_MODEL_LEN:-8192}"
+      - --max-num-seqs
+      - "${MAIN_MAX_NUM_SEQS:-64}"
+      - --enable-prefix-caching
+      - --enable-chunked-prefill
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0", "1", "2"]
+              capabilities: [gpu]
+  
+  
+  #-------- backup vllm serve ----------
+  vllm-backup:
+    <<: *vllm-common
+    profiles: [backup]
+    ports: 
+      - "8002:8000"
+    networks:
+      default: 
+        aliases:
+          - vllm-active
+    command:
+      - "${BACKUP_MODEL_PATH:-/opt/models/Qwen3-14B}"
+      - --served-model-name
+      - "${BACKUP_SERVED_MODEL_NAME:-qwen3-14b}"
+      - --pipeline-parallel-size 
+      - "1"
+      - --tensor-parallel-size
+      - "2"
+      - --dtype
+      - float16
+      - --gpu-memory-utilization
+      - "${GPU_MEMORY_UTILIZATION:-0.9}"
+      - --max-model-len
+      - "${BACKUP_MAX_MODEL_LEN:-8192}"
+      - --max-num-seqs
+      - "${BACKUP_MAX_NUM_SEQS:-64}"
+      - --enable-prefix-caching
+      - --enable-chunked-prefill
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0", "1"]
+              capabilities: [gpu]
+  
+  #---------nginx---------
+  nginx-main:
+    image: nginx:1.30.4-alpine
+    profiles: ["main"]
+    restart: unless-stopped
+    depends_on: 
+      vllm-main:
+        condition: service_healthy
+    volumes: 
+      - "./deploy/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "./logs/nginx:/var/log/nginx"
+    ports: 
+      - "80:80"
+    networks:
+      default:
+        aliases:
+          - nginx-active
+
+  nginx-backup:
+    image: nginx:1.30.4-alpine
+    profiles: ["backup"]
+    restart: unless-stopped
+    depends_on: 
+      vllm-backup:
+        condition: service_healthy
+    volumes: 
+      - "./deploy/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "./logs/nginx:/var/log/nginx"
+    ports:
+      - "80:80"
+    networks:
+      default:
+        aliases:
+          - nginx-active
+
+  #----------- nginx-exporter -------------
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.5.1
+    profiles: ["main", "backup"]
+    command:
+    - --nginx.scrape-uri=http://nginx-active:8081/stub_status
+    restart: unless-stopped
+  
+  #---------- prometheus ----------
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["main", "backup"]
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+  
+  #---------- Grafana ----------
+  grafana:
+    image: grafana/grafana:latest
+    profiles: ["main", "backup"]
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+  
+  #------- DCGM Exporter(GPU index) ---------
+  dcgm-exporter:
+    image: nvidia/dcgm-exporter:latest
+    profiles: ["main", "backup"]
+    cap_add: [SYS_ADMIN]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "9400:9400"
+    restart: unless-stopped
+
+volumes: {hf-cache: , prometheus_data: , grafana_data: }

@@ -1,0 +1,16 @@
+
+| #   | 症状                                  | 可能原因                                             | 定位手段                                     | 处理                                                          |
+| --- | ----------------------------------- | ------------------------------------------------ | ---------------------------------------- | ----------------------------------------------------------- |
+| 1   | 启动报 no compatible attention backend | sm_75 无可用后端                                      | 看启动日志各 backend 拒绝原因（实验0矩阵）               | 切 bake-off 选定后端 / 走 SM75 路线                                 |
+| 2   | 容器启动即崩 Bus error                    | `/dev/shm` 太小，PP 多进程共享内存不足                       | `docker logs hs-vllm` 看 NCCL/shm 报错      | 调大 `shm_size` + `ipc: host`                                 |
+| 3   | 显存 OOM（加载或运行时）                      | `gpu-memory-utilization` 过高 / `max-model-len` 过大 | nvidia-smi 看峰值 + vLLM KV 分配日志            | 降 util 到 0.88 / 降 max-model-len                             |
+| 4   | 某卡掉线、PP 流水线中断                       | 改显存 2080Ti 满载掉卡（已知风险）                            | DCGM 功耗骤降 / nvidia-smi 少一卡               | 检查供电与接触；监控加单卡在线告警                                           |
+| 5   | 流式响应一次性返回                           | Nginx 缓冲未关                                       | `curl -N` 观察                             | 确认 `proxy_buffering off` 生效                                 |
+| 6   | 高压队列堆积。请求返回 5xx 错误                  | Nginx 限流保护生效。                                    | Grafana 面板数据中`num_requests_waiting 飙到几百` | Nginx限流生效，超出 burst 的请求报 503。系统稳态恢复限流保护                      |
+| 7   | 三卡显存严重不均                            | rank↔槽位错配 / 层切分不均                                | 看 PP 切分日志                                | 确认 `CUDA_DEVICE_ORDER=PCI_BUS_ID`                           |
+| 8   | TTFT 突然变高                           | 长 prompt 未分块 / KV 逼近上限                           | Grafana KV 占用 + TTFT 面板                  | 开 chunked-prefill / 降并发                                     |
+| 9   | 模型下载慢/中断                            | 国内访问 HF 慢                                        | 看下载日志                                    | `HF_ENDPOINT=https://hf-mirror.com` + `hf_transfer`         |
+| 10  | healthcheck 反复重启容器                  | `start_period` 太短，32B 还在加载                       | `docker ps` 看反复 restarting               | 把 `start_period` 提到 300s+                                   |
+| 11  | NCCL 初始化卡住/超时                       | PP 多进程通信握手失败                                     | 看 NCCL DEBUG 日志                          | 设 `NCCL_DEBUG=INFO` 排查；确认 ipc/shm；必要时设 `NCCL_P2P_DISABLE` 试 |
+| 12  | GPTQ/AWQ 加载报 kernel 不匹配             | 量化 kernel 与 sm_75 不匹配                            | 看 quant 相关报错                             | 确认用 `awq_marlin`；对照社区 recipe 的量化设置                          |
+| 13  | vLLM 版本升级后启动参数报错                    | 版本间 flag 改名/废弃                                   | 看 argparse 报错                            | 锁定 lock 文件版本，勿盲目升级                                          |

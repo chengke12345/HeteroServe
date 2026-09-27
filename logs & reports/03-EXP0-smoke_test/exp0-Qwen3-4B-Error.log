@@ -1,0 +1,33 @@
+(APIServer pid=13785) INFO:     Application startup complete.
+(APIServer pid=13785) INFO:     127.0.0.1:50968 - "POST /v1/chat/completions HTTP/1.1" 500 Internal Server Error
+(APIServer pid=13785) ERROR:    Exception in ASGI application
+(APIServer pid=13785) Traceback (most recent call last):
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 421, in run_asgi
+(APIServer pid=13785)     result = await app(  # type: ignore[func-returns-value]
+(APIServer pid=13785)              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 62, in __call__
+(APIServer pid=13785)     return await self.app(scope, receive, send)
+(APIServer pid=13785)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/fastapi/applications.py", line 1162, in __call__
+(APIServer pid=13785)     await super().__call__(scope, receive, send)
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/starlette/applications.py", line 90, in __call__
+(APIServer pid=13785)     await self.middleware_stack(scope, receive, send)
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+(APIServer pid=13785)     raise exc
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+(APIServer pid=13785)     await self.app(scope, receive, _send)
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/starlette/middleware/cors.py", line 88, in __call__
+(APIServer pid=13785)     await self.app(scope, receive, send)
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/prometheus_fastapi_instrumentator/middleware.py", line 131, in __call__
+(APIServer pid=13785)     handler, is_templated = self._get_handler(request)
+(APIServer pid=13785)                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/prometheus_fastapi_instrumentator/middleware.py", line 240, in _get_handler
+(APIServer pid=13785)     route_name = routing.get_route_name(request)
+(APIServer pid=13785)                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/prometheus_fastapi_instrumentator/routing.py", line 75, in get_route_name
+(APIServer pid=13785)     route_name = _get_route_name(scope, routes)
+(APIServer pid=13785)                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=13785)   File "/home/chengke12345/miniconda3/envs/HeteroServe2/lib/python3.11/site-packages/prometheus_fastapi_instrumentator/routing.py", line 55, in _get_route_name
+(APIServer pid=13785)     route_name = route.path
+(APIServer pid=13785)                  ^^^^^^^^^^
+(APIServer pid=13785) AttributeError: '_IncludedRouter' object has no attribute 'path'

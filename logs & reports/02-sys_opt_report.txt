@@ -1,0 +1,102 @@
+正在设置交换空间版本 1，大小 = 29.8 GiB (31999995904  个字节)
+无标签， UUID=cf3823ec-fba5-4d5d-a2f9-2c96de75cc51
+/swapfile none swap sw 0 0
+
+# swap 倾向：尽量不用swap, 仅加载时使用
+vm.swappiness=1
+
+# 允许内存超额分配(fork大进程必须)
+vm.overcommit_memory=1
+
+# 文件缓存压力降低
+vm.vfs_cache_pressure=50
+
+#网络性能
+net.core.somaxconn=65535 # 高并发http服务监听队列
+net.ipv4.tcp_max_syn_backlog=65535
+* Applying /usr/lib/sysctl.d/10-apparmor.conf ...
+* Applying /etc/sysctl.d/10-bufferbloat.conf ...
+* Applying /etc/sysctl.d/10-console-messages.conf ...
+* Applying /etc/sysctl.d/10-ipv6-privacy.conf ...
+* Applying /etc/sysctl.d/10-kernel-hardening.conf ...
+* Applying /etc/sysctl.d/10-magic-sysrq.conf ...
+* Applying /etc/sysctl.d/10-map-count.conf ...
+* Applying /etc/sysctl.d/10-network-security.conf ...
+* Applying /etc/sysctl.d/10-ptrace.conf ...
+* Applying /etc/sysctl.d/10-zeropage.conf ...
+* Applying /usr/lib/sysctl.d/30-tracker.conf ...
+* Applying /usr/lib/sysctl.d/50-bubblewrap.conf ...
+* Applying /usr/lib/sysctl.d/50-pid-max.conf ...
+* Applying /usr/lib/sysctl.d/99-protect-links.conf ...
+* Applying /etc/sysctl.d/99-sysctl.conf ...
+* Applying /etc/sysctl.d/99-vllm.conf ...
+* Applying /etc/sysctl.conf ...
+kernel.apparmor_restrict_unprivileged_userns = 1
+net.core.default_qdisc = fq_codel
+kernel.printk = 4 4 1 7
+net.ipv6.conf.all.use_tempaddr = 2
+net.ipv6.conf.default.use_tempaddr = 2
+kernel.kptr_restrict = 1
+kernel.sysrq = 176
+vm.max_map_count = 1048576
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.all.rp_filter = 2
+kernel.yama.ptrace_scope = 1
+vm.mmap_min_addr = 65536
+fs.inotify.max_user_watches = 65536
+kernel.unprivileged_userns_clone = 1
+kernel.pid_max = 4194304
+fs.protected_fifos = 1
+fs.protected_hardlinks = 1
+fs.protected_regular = 2
+fs.protected_symlinks = 1
+vm.swappiness = 1
+vm.overcommit_memory = 1
+vm.vfs_cache_pressure = 50
+net.core.somaxconn = 65535 # 高并发http服务监听队列
+net.ipv4.tcp_max_syn_backlog = 65535
+never
+never
+[Unit]
+Description=Disable Transparent Huge Pages
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "echo never > /sys/kernel/mm/transparent_hugepage/enabled && echo never > /sys/kernel/mm/transparent_hugepage/defrag"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+Created symlink /etc/systemd/system/multi-user.target.wants/disable-thp.service → /etc/systemd/system/disable-thp.service.
+正在读取软件包列表... 完成
+正在分析软件包的依赖关系树... 完成
+正在读取状态信息... 完成
+将会同时安装下列软件：
+  libcpufreq0
+下列【新】软件包将被安装：
+  cpufrequtils libcpufreq0
+升级了 0 个软件包，新安装了 2 个软件包，要卸载 0 个软件包，有 49 个软件包未被升级。
+需要下载 45.5 kB 的归档。
+解压缩后会消耗 225 kB 的额外空间。
+获取:1 http://mirrors.tuna.tsinghua.edu.cn/ubuntu noble/universe amd64 libcpufreq0 amd64 008-2build2 [11.1 kB]
+获取:2 http://mirrors.tuna.tsinghua.edu.cn/ubuntu noble/universe amd64 cpufrequtils amd64 008-2build2 [34.4 kB]
+已下载 45.5 kB，耗时 0秒 (120 kB/s)
+正在预设定软件包 ...
+正在选中未选择的软件包 libcpufreq0。
+(正在读取数据库 ... 系统当前共安装有 227976 个文件和目录。)
+准备解压 .../libcpufreq0_008-2build2_amd64.deb  ...
+正在解压 libcpufreq0 (008-2build2) ...
+正在选中未选择的软件包 cpufrequtils。
+准备解压 .../cpufrequtils_008-2build2_amd64.deb  ...
+正在解压 cpufrequtils (008-2build2) ...
+正在设置 libcpufreq0 (008-2build2) ...
+正在设置 cpufrequtils (008-2build2) ...
+update-rc.d: warning: start and stop actions are no longer supported; falling back to defaults
+update-rc.d: warning: start and stop actions are no longer supported; falling back to defaults
+正在处理用于 man-db (2.12.0-4build2) 的触发器 ...
+正在处理用于 libc-bin (2.39-0ubuntu8.7) 的触发器 ...
+GOVERNOR="performance"
+               total        used        free      shared  buff/cache   available
+内存：          31Gi       2.2Gi        26Gi       461Mi       3.4Gi        28Gi
+交换：          37Gi          0B        37Gi

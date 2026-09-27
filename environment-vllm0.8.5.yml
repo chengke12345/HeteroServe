@@ -1,0 +1,26 @@
+name: HeteroServe
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - --extra-index-url https://download.pytorch.org/whl/cu124
+    - torch==2.6.0
+    - torchvision==0.21.0
+    - torchaudio==2.6.0
+    - vllm==0.8.5.post1
+    - xformers==0.0.29.post2
+    - transformers>=4.51.0, <4.54
+    - accelerate
+    - huggingface-hub
+    - hf_transfer
+    - modelscope        # 国内模型下载，速度比huggingface快
+    - locust            # 压测
+    - prometheus-client
+    - rich              # 美化日志
+    - pandas
+    - matplotlib       
+    - plotly            # 交互图表
+    - gradio            # Demo UI 
+    - httpx             # 流式客户端
