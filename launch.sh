@@ -16,7 +16,7 @@ for i in {1..60}; do
         break
     fi
 
-    if i >= 60; do 
+    if (( i > 60 )); then 
         echo "❌ ERRORS: Launch Fail."
         exit 1
     fi 
