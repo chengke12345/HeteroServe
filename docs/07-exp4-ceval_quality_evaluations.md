@@ -13,7 +13,7 @@ ds = load_dataset('ceval/ceval-exam', subject, split="val")
 ```
 - `"ceval/ceval-exam"` 是 Hugging Face 上的数据仓库，属于 C-Eval benchmark
 - `split="val"` 我们只加载了验证集，validation split。验证集是有问题与对应答案的测试数据。除此之外，还有测试集 test split.
-- `subject`, 表示具体科目，C-Eval 共有 52 个科目，一共 1364 个题目或者测试用例。
+- `subject`, 表示具体科目，C-Eval 共有 52 个科目，一共 1346 个题目或者测试用例。
 
 C-Eval 测试集，完整52个科目，及每个科目对应的验证集 val split, 测试集 test split, 如下：
 
@@ -101,7 +101,7 @@ acc = \frac{correct}{total}\times 100\%
 $$
 
 
-测试时，我们会对 Qwen3-32B-AWQ, Qwen3-14B-FP16, Qwen3-32B-GPTQ 三个模型在 thinking 和 nonthinking 模式下，分别在 val split 验证集上完整跑完 52 个科目的 1364 个测试用例。
+测试时，我们会对 Qwen3-32B-AWQ, Qwen3-14B-FP16, Qwen3-32B-GPTQ 三个模型在 thinking 和 nonthinking 模式下，分别在 val split 验证集上完整跑完 52 个科目的 1346 个测试用例。
 在 non-thinking 模式下, 三个模型跑完完整的 52个科目，12342个测试集数据。
 
 让每个模型在每个模式、每个数据集下，分别跑出测试数据。统计整体正确率与各科目下正确率。
@@ -142,7 +142,7 @@ micro average 是把所有科目的答对题数加起来，再除以所有题目
 
 ### 二、C-Eval 完整验证集(val)测试
 
-我们在 C-Eval 的完整验证集上进行测试，即`split="val"`。验证集包含 52个 科目，共 1364 个题目/测试用例。
+我们在 C-Eval 的完整验证集上进行测试，即`split="val"`。验证集包含 52个 科目，共 1346 个题目/测试用例。
 完整验证集的测试脚本，详见[14-EXP4-eval_quality_all.py](/scripts/14-EXP4-eval_quality_all.py)
 
 在 thinking 和 non-thinking 模式下分别进行测试
@@ -162,15 +162,15 @@ non-thinking 模式下，详见[ceval_val_qwen3-32b-awq_nonthinking.json](/logs%
 
 thinking 模式下，详见[ceval_val_qwen3-32b-awq_thinking.json](/logs%20&%20reports/07-EXP4-ceval_quality_evaluations/ceval_val_qwen3-32b-awq_thinking.json), [ceval_val_qwen3-14b-fp16_thinking.json](/logs%20&%20reports/07-EXP4-ceval_quality_evaluations/ceval_val_qwen3-14b-fp16_thinking.json), [ceval_val_qwen3-32b-gptq_thinking.json](/logs%20&%20reports/07-EXP4-ceval_quality_evaluations/ceval_val_qwen3-32b-gptq_thinking.json)
 
-每个模型测试产生的 json 测试数据文件，包含所有52个科目下，一共 1364 个题目上的整体测试数据，以及以及分别在每个科目下的测试数据。一共有 6 个测试数据文件。
+每个模型测试产生的 json 测试数据文件，包含所有52个科目下，一共 1346 个题目上的整体测试数据，以及以及分别在每个科目下的测试数据。一共有 6 个测试数据文件。
 
-每个模型，都采用了 thinking  和 nonthinking 两种模型访问模式，对比评估两种模式下，模型回答问题的正确率差别多大。thinking 模式下，我们只对 val 验证集进行了测试。一共52个科目，1364个测试题目/用例。
+每个模型，都采用了 thinking  和 nonthinking 两种模型访问模式，对比评估两种模式下，模型回答问题的正确率差别多大。thinking 模式下，我们只对 val 验证集进行了测试。一共52个科目，1346 个测试题目/用例。
 
 在 thinking模式下，我们跑完整的 val 验证集，每个模型大约需要跑～1.5天，而 non-thinking 模式下，每个模型大约需要 ～30分钟。
 
 ### 结果分析
 
-在 val 验证集下，每个模型都在 thinking 和 non-thinking 模式下，跑完了 52个科目 1364个测试问题/用例。 6个 json 数据文件中存放了每个模型在每个模式下的表现。统计整体与各个科目下的表现。matplotlib 将测试数据表示成直方图：
+在 val 验证集下，每个模型都在 thinking 和 non-thinking 模式下，跑完了 52个科目 1346个测试问题/用例。 6个 json 数据文件中存放了每个模型在每个模式下的表现。统计整体与各个科目下的表现。matplotlib 将测试数据表示成直方图：
 
 Qwen3-32B-AWQ (non-thinking) split='val' VS Qwen3-14B-FP16 VS Qwen3-32B-GPTQ 
 ![](/docs/assets/EXP4_assets/ceval_val_qwen3-32b-awq_nonthinking_qwen3-32b-awq_stacked_subject_bars.png)
@@ -235,7 +235,7 @@ nonthinking, split = 'test' Qwen3-32B-AWQ VS Qwen3-14B-FP16 VS Qwen3-32B-GPTQ
 ![](/docs/assets/EXP4_assets/ceval_test_qwen3-14b-fp16_nonthinking_qwen3-14b-fp16_stacked_subject_bars.png)
 ![](/docs/assets/EXP4_assets/ceval_test_qwen3-32b-gptq_nonthinking_qwen3-32b-gptq_stacked_subject_bars.png)
 
-对于 test 测试集来说，它的样本空间更大，一共12342个测试用例。而 val 验证集有1364个测试用例。test 测试集的测试结果，更接近客观事实规律。
+对于 test 测试集来说，它的样本空间更大，一共12342个测试用例。而 val 验证集有 1346 个测试用例。test 测试集的测试结果，更接近客观事实规律。
 
 # 4. 质量-性能 Pareto图
 
@@ -257,6 +257,6 @@ test 测试集下 non-thinking 模式的 Pareto 图：
 - 三个模型都不擅长数学推理和解数学题。更擅长人文科学方面的推理。
 - 在 C-Eval 评测集上，thinking 模式与 non-thinking 模式正确率有一定的提升，但不是特别大。
 - thinking 模式比 non-thinking 模式的推理速度，慢约 100 倍。是否值得开启 thinking 模式，需要根据实际情况，再确定。
-- 三个模型在系统稳定性方面的表现都堪称完美。一共 52 个科目，val 验证集上 1364个测试用例，test 集上 12342 个测试用例，在 thinking 和 nonthinking 模式下运行，一共运行 45102 个测试用例。测试整体时间约 5 天。 测试案例全部顺利推理完成。0 失败。
+- 三个模型在系统稳定性方面的表现都堪称完美。一共 52 个科目，val 验证集上 1346个测试用例，test 集上 12342 个测试用例，在 thinking 和 nonthinking 模式下运行，一共运行 45102 个测试用例。测试整体时间约 5 天。 测试案例全部顺利推理完成。0 失败。
 
 <u>综上所述，Qwen3-32B-AWQ 是当前硬件条件下的最佳选择。</u>

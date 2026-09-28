@@ -1,5 +1,6 @@
 # Phase 0: 约束与技术决策总览
----
+
+
 ## 1. 并行策略
 
 Pipeline Parallelism, PP=3, 流水线并行，三卡将模型按层切分。TP=3 受 KV head 整除性和 PCIe x 4 通信带宽限制，双重排除。 无 NVLink 情况下，优先 PP。
@@ -67,7 +68,8 @@ vLLM对算子的选择，与框架引擎相关，详见[10-vLLM 引擎-V0与V1 ]
 
 
 # Phase 1: 硬件拓扑与带宽测试
----
+
+
 ## 1. 硬件设置 BIOS
 
 进入系统前，我们需要在 BIOS 下进行一些设置，打开硬件层面对多卡系统的支持。主要设置包括
@@ -89,6 +91,7 @@ XMP Profile: Profile 1       ← 让内存跑 2666
 ```
 
 关于BIOS的关键设置，详见 [01_hw_setup](/docs/01_hw_setup.md)
+
 ## 2. 硬件参数与拓扑结构
 
 HeteroServe 生产节点采用硬件环境汇总如下：
@@ -130,6 +133,7 @@ HeteroServe 生产节点采用硬件环境汇总如下：
 ```
 
 更详细的硬件配置说明，参考 [01_hw_setup](/docs/01_hw_setup.md)
+
 ## 3. 硬件测试
 
 进入系统后我们通过测试脚本，对硬件进行了测试。测试结果简要汇总如下：
@@ -158,7 +162,8 @@ i7-7700 只有 16 条 CPU 直连 PCIe lane，两张 x8 卡占满；第三张只�
 
 
 # Phase 2: 环境搭建与软件版本
----
+
+
 ## 1. 核心软件组件版本
 
 使用环境简要汇总如下：
@@ -190,7 +195,7 @@ i7-7700 只有 16 条 CPU 直连 PCIe lane，两张 x8 卡占满；第三张只�
 
 
 # Phase 3:  EXP0-Qwen3-4B 冒烟测试 smoke test
----
+
 
 首先用 Qwen3-4B 模型进行单卡冒烟测试, 验证整条链路 vLLM启动 -> API 响应能跑通。
 先进行单卡启动。然后在另一终端进行 <u>单次测试</u> 与 <u>流式测试</u>
@@ -210,7 +215,8 @@ Qwen3-4B 单卡冒烟测试。测试说明与分析，参见[03-exp0-Qwen3-4B_sm
 
 
 # Phase 4: EXP1-Qwen3-32B-AWQ 主线模型上线 PP=3
----
+
+
 经过冒烟测试，vLLM 框架的配置问题，后端算子使用和选择等问题，已经解决。然后启动主线模型上线。
 
 ## 1. Qwen3-32B-AWQ 主模型启动上线
@@ -263,10 +269,12 @@ vLLM 部署主模型 Qwen3-32B-AWQ 启动参数如下：
 使用 vLLM 0.21.0 部署框架，在 sm_75 (Turing) + FlashInfer + PP=3 组合下，部署大模型 Qwen3-32B-AWQ,  torch.compile 与 CUDAGraph（PIECEWISE + FULL）capture 均成功，无回退、无报错。 主模型顺利上线。
 
 # Phase 5:  EXP2-量化对比实验
----
+
+
 主模型上线后，我们引入 Qwen3-14B FP16 的完整版 和 Qwen3-32B 的另一个量化版本，GPTQ。三个模型进行横向量化对比。 主要对延时和量化等指标进行对比。
 
 关于量化对比实验详细信息，参考 [05-exp2-Three-Models-Comparison](/docs/05-exp2-Three-Models-Comparison.md)
+
 ## 1. 模型启动
 
 - 主模型 Qwen3-32B-AWQ 的启动脚本，详见 [06-exp1-Qwen3-32B-AWQ_launch.sh](/scripts/06-exp1-Qwen3-32B-AWQ_launch.sh).
@@ -277,6 +285,7 @@ vLLM 部署主模型 Qwen3-32B-AWQ 启动参数如下：
 
 - Qwen3-32B-GPTQ-Int4 的启动脚本，详见 [10-exp2-Qwen3-32B-GPTQ_launch.sh](/scripts/10-exp2-Qwen3-32B-GPTQ_launch.sh). 注意，Marlin Kernel 要修改为`gptq_marlin`.
   启动日志，详见 [exp2-Qwen3-32B-GPTQ_launch.log](/logs%20&%20reports/05-EXP2-three_models_comparison/exp2-Qwen3-32B-GPTQ_launch.log)
+
 
 ## 2. 性能测量
 
@@ -295,13 +304,14 @@ Qwen3-32B-GPTQ 的测试结果数据，详见 [exp2-Qwen3-32B-GPTQ_run.json](/lo
 | Qwen3-32B-AWQ  | 0.079   | 0.036   | 27.12      | 6.49        | 8.27x @16k |
 | Qwen3-14B-FP16 | 0.055   | 0.028   | 35.29      | 13.88       | 3.07x @16K |
 | Qwen3-32B-GPTQ | 0.080   | 0.036   | 27.31      | 6.45        | 8.29x @16k |
+
 ## 3. 结论
 
 量化版模型即使在 vLLM 的 Marlin Kernel 优化下，推理速度和吞吐量依然不敌完整版的模型，但是，完整版模型占用的权重显存远远高于量化版模型. 因此，留给 KV Cache 的部分就更少，能够支撑的最大并发数也就最少。量化版本的显存占用明显低于完整版，代价就是数据精度受到影响，并且推理速度偏慢。但目前硬件条件下，Qwen3-32B-AWQ 是最佳选择。 
 
 
 # Phase 6: EXP3-基准测试
----
+
 
 使用 vLLM 官方 Benchmark 工具，对 Qwen3-32B-AWQ, Qwen3-14B-FP16, Qwen3-32B-GPTQ 使用`vllm bench`  进行 Benchmark， 分析测试结果。
 
@@ -336,6 +346,7 @@ matplotlib 绘制并发-性能曲线对比图如下：
 
 ![](/docs/assets/EXP2_assets/three_configs_comparison.png)
 
+
 ## 3. 结论
 
 1.  **Qwen3-14B-FP16 全面领先**：吞吐和延迟在所有并发下都是最好。相对 32B 量化模型，输出吞吐高约 **23%-54%**，mean TTFT 低约 **46%-57%**。
@@ -352,14 +363,15 @@ benchmark 测试只能评估模型推理的性能，但是对于模型质量，�
 benchmark 数据表明，32B 量化模型，在 c16  的时候，综合表现最好。 c64 虽然系统整体吞吐量提高明显，但是 P99 TTFT 和 P99 TPOT 退化严重已经失控。所以 32B 量化模型最好选择 c16 的运行模式。
 
 # Phase 7: EXP4-质量评估
----
+
+
 除了模型的推理性能之外，我们还需要对模型的推理质量进行评估。更详细的模型质量评估方案，参考 [07-exp4-ceval_quality_evaluations](/docs/07-exp4-ceval_quality_evaluations.md)
 
 ## 1. 测试数据集
 
 我们使用的是 C-Eval 中文考试测评集来对模型进行推理质量测试。C-Eval 全称是 C-Eval: A Multi-Level Multi-Discipline Chinese Evaluation Suite for Fundation Models. 包含中文单项选择题，覆盖 52 个学科，包括 中学/高中/大学/职业 等多个难度层级。它主要用于评估基础模型在中文语境下的知识和推理能力。
 
-数据来源是 Hugging Face 上的数据仓库，`ceval/ceval-exam`, 属于 C-Eval Benchmark。ceval 测评数据集上共有两种数据集，一种是验证集 val，具有52个科目(subject)，1364个测试用例/问题。一种是正式测试集 test，共有52个科目， 12342个测试用例/问题。
+数据来源是 Hugging Face 上的数据仓库，`ceval/ceval-exam`, 属于 C-Eval Benchmark。ceval 测评数据集上共有两种数据集，一种是验证集 val，具有52个科目(subject)，1346个测试用例/问题。一种是正式测试集 test，共有52个科目， 12342个测试用例/问题。
 
 ## 2. 核心指标
 
@@ -375,14 +387,14 @@ Qwen3-32B-AWQ, Qwen3-14B-FP16, Qwen3-32B-GPTQ 三个模型，分别在 thinking 
 在 nonthinking 模式下，三个模型再运行完整的正式测试集 test, 计算模型推理的正确率。
 统计口径包括 macro average 、micro average、以及局部 52 个科目各自正确率。
 
-实际执行测试过程中，thinking 模式的推理速度比 non-thinking 的推理速度慢了接近 100 倍。在val上，完整跑完 52个科目，1364 个测试用例。一个模型就要花 ～1.5天。test 共52个科目， 12342测试用例，全部跑完三个模型，大约需要 45 天。
+实际执行测试过程中，thinking 模式的推理速度比 non-thinking 的推理速度慢了接近 100 倍。在val上，完整跑完 52个科目，1346 个测试用例。一个模型就要花 ～1.5天。test 共52个科目， 12342测试用例，全部跑完三个模型，大约需要 45 天。
 在 val 上已经能够对比出 thinking 模式与 nonthinking 模式之间的推理质量差异。所以test测试集上的测试，只执行了 nonthinking 模式。
 
 ## 4. 测试结果
 
 ### val 验证数据集
 
-在 val 验证集上，52个科目，1364个测试用例上，在 thinking 和 non-thinking 模式下分别进行测试
+在 val 验证集上，52个科目，1346 个测试用例上，在 thinking 和 non-thinking 模式下分别进行测试
 
 |                                  | Macro Avg % | Micro Avg % | correct | total | subjects | serial tput <br>(tok/s) |
 | -------------------------------- | ----------- | ----------- | ------- | ----- | -------- | ----------------------- |
@@ -442,6 +454,7 @@ nonthinking 模式下，split = 'test' Qwen3-32B-AWQ VS Qwen3-14B-FP16 VS Qwen3-
 ![](/docs/assets/EXP4_assets/ceval_test_qwen3-14b-fp16_nonthinking_qwen3-14b-fp16_stacked_subject_bars.png)
 ![](/docs/assets/EXP4_assets/ceval_test_qwen3-32b-gptq_nonthinking_qwen3-32b-gptq_stacked_subject_bars.png)
 
+
 ## 5. 结论
 
 我们可以针对整体的正确率画出三个模型的性能-质量Pareto图
@@ -455,17 +468,18 @@ split=val / non-thinking VS split=test / non-thinking VS split=val / thinking
 - 三个模型都不擅长数学推理和解数学题。更擅长人文科学方面的推理。
 - 在 C-Eval 评测集上，thinking 模式与 non-thinking 模式正确率有一定的提升，但不是特别大。
 - thinking 模式比 non-thinking 模式的推理速度，慢约 100 倍。是否值得开启 thinking 模式，需要根据实际情况，再确定。
-- 三个模型在系统稳定性方面的表现都堪称完美。一共 52 个科目，val 验证集上 1364个测试用例，test 集上 12342 个测试用例，在 thinking 和 nonthinking 模式下运行，一共运行 45102 个测试用例。测试整体时间约 5 天。 测试案例全部顺利推理完成, 0 失败。
+- 三个模型在系统稳定性方面的表现都堪称完美。一共 52 个科目，val 验证集上 1346个测试用例，test 集上 12342 个测试用例，在 thinking 和 nonthinking 模式下运行，一共运行 45102 个测试用例。测试整体时间约 5 天。 测试案例全部顺利推理完成, 0 失败。
 
 <u>综上所述，Qwen3-32B-AWQ 是当前硬件条件下的最佳选择。</u>
 
 
 # Phase 8: KV Cache 调优
----
+
 
 三个模型，在不同 `max_model_len` 上下文窗口下, KV Cache 容量，并发能力有所不同，我们需要探究KV Cache 容量是否随 `max-model-len`，不同模型/量化方式对 KV 容量的影响，如何合理设置 `max-model-len` 与 `max_num_seqs`， 以及长上下文场景下的并发瓶颈在哪里。 
 
 详细 KV调优测试与分析，参考 [KV Cache Tuning](/docs/08-exp5-KV_Cache_Tuning.md)
+
 ## 1. KV Cache 测试
 
 在设置 `max_num_seqs=64` 时，三个模型启动后的静态数据为：
@@ -476,6 +490,7 @@ split=val / non-thinking VS split=test / non-thinking VS split=val / thinking
 | Qwen3-14B-FP16 | 3.81GiB            | 49872         | 3117 @16   |
 | Qwen3-32B-GPTQ | 10.89 GiB          | 135904        | 8494 @16   |
 Qwen3-14B-FP16 虽然参数量小于 32B，但由于使用 FP16 权重，并且本次部署下单卡可用 KV 显存只有约 3.8 GiB，engine KV 容量只有约 50K tokens。因此它在长上下文下的满长并发能力明显低于 32B 量化模型。这说明在显存受限环境下，“小模型 FP16”不一定比“大模型量化版”更适合长上下文高并发服务。
+
 ## 2. 并发瓶颈
 
 然后我们设置不同的模型上下文 `max-model-len=1024, 2048, 4096, 8192, 16384，32768`. 观察 KV Cache 的变化与并发度支持
@@ -486,6 +501,7 @@ Qwen3-14B-FP16 虽然参数量小于 32B，但由于使用 FP16 权重，并且�
 | Qwen3-14B-FP16 | 48.70x   | 24.35x   | 12.18x   | 6.09x    | 3.07x      | 1.52x      |
 | Qwen3-32B-GPTQ | 132.72x  | 66.36x   | 33.18x   | 16.59x   | 8.29x      | 4.14x      |
 同一模型下，KV token 容量基本稳定。改变 `max-model-len` 后，变化的是“满长度请求下的并发能力`max-model-len` 不会显著改变 KV 总容量。拉高 `max-model-len` 的代价是显著降低最坏情况下的并发能力。
+
 
 ## 3. KV Cache 调优结论
 
@@ -527,6 +543,7 @@ Qwen3-14B-FP16 虽然参数量小于 32B，但由于使用 FP16 权重，并且�
 |8K|约 6|4-5|
 |16K|约 3|2|
 |32K|约 1-2|1|
+
 ## 4. 最终结论
 
 KV Cache 调优不是简单调大 `max-model-len` 或 `max_num_seqs`，而是根据业务请求的 token 长度分布，在 KV active token 容量约束下做匹配。
@@ -544,14 +561,16 @@ KV Cache 调优不是简单调大 `max-model-len` 或 `max_num_seqs`，而是根
 vLLM 框架的上下文限制 `max-model-len` 和 请求并发限制 `max-num-seqs` 更详细的讨论，参考 [vLLM上下文限制(max-model-len)与并发限制(max-num-seqs)](/docs/analysis%20&%20research/14-vLLM上下文限制(max-model-len)与并发限制(max-num-seqs).md)
 
 # Phase 9:  Dockerfile: & Nvidia-Container-Toolkit
----
+
 经过量化对比实验，基准测试，质量评估，KV调优后，我们对模型部署的参数和调试已经具备数据支撑了。整体部署方案，使用 Docker 将服务容器化，再配合 docker-compose 容器编排。我们可以把整个模型推理服务体系，一键启动。实现再相同硬件下的服务网络一键复现。
 ## 1. 安装 Docker
+
 ```bash
 curl -fsSL https:// get.docker.com | sh
 sudo usermode -aG docker $USER
 newgrp docker
 ```
+
 ## 2.  Nvidia-Container-Toolkit
 
 Nvidia-Container-Toolkit 是 NVIDIA 提供的工具，它将宿主机上的 Nvidia 驱动，设备节点等资源挂载到 docker 容器上的工具。docker 容器只需要保留 CUDA Runtime 运行环境，就可以通过挂载驱动调用宿主机的 GPU 资源了。关于 Nvidia-Container-Toolkit 的详细讨论，详见[Nvidia-Container-Toolkit](/docs/analysis%20&%20research/15-Nvidia-Container-toolkit.md)
@@ -599,21 +618,24 @@ STOPSIGNAL SIGTERM
 至此，我们完成了 vllm 服务的容器化。
 
 # Phase 10: Docker Compose 容器编排(全栈一键拉起)
----
+
 
 架构决策和测试完成后，我们要一键启动整套服务，让环境彻底隔离。将项目中使用的所有服务进行容器化，并使用 docker compose 进行编排，通过 `docker compose up` 一键拉起全部服务。
 
 compose.yml 配置文件，对各docker 容器的服务进行了编排。完整的 compose.yaml 配置文件，参考[compose.yml](/compose.yml). 
 
 docker compose 网络中的包含的服务如下
+
 ## 1. 模型主备模式
 
 生产环境中采用模型的主备模式部署。compose 网络中的 vllm-main 服务采用 Qwen3-32B-AWQ, 备用模型是 vllm-backup 服务，采用 Qwen3-14B-FP16。
 
 主备模型在同一时间只会启动一个，备用模型正常情况下作为冷备份存在。
+
 ## 2. Nginx 流式网关
 
 为了统一请求入口，执行流式转发，未来可能进行负载均衡和流量限制，项目采用 Nginx 做模型服务器端反向代理。将 Nginx 作为一个单独的 docker 容器提供服务。
+
 
 ## 3. 监控与观测
 
@@ -684,7 +706,7 @@ stop.sh 停止服务后，可以看到返回
 ![](/docs/assets/docker-compose-assets/Pasted%20image%2020260831152628.png)
 
 # Phase 11: Nginx 流式网关
----
+
 
 HeteroServe 项目提供生产级 OpenAI 兼容网关，用 Nginx 反向代理，提供统一入口，流式转发，限流降级等功能，未来可以进行负载均衡，流量控制，和多模型路由等方面扩展。
 
@@ -699,7 +721,8 @@ Nginx 流式网关配置文件的详细解析，参考 [16-nginx.conf 配置解�
 Nginx 设置完成后，对外统一暴露 http://localhost/v1/* 兼容 OpenAI 接口。
 
 # Phase 12: 生产化与可观测
----
+
+
 ## 1. 架构设计
 
 稳定的生产环境需要实时监测和分析，我们采用的监测模块分两层架构：vllm/metrics(服务质量) + DCGM(GPU硬件)。两层性能数据综合起来，才能全面判断和评估模型的表现。
@@ -752,6 +775,7 @@ flowchart LR
 | DCGM | \*DCGM_FI_PROF_PCIE_TX_BYTES                          | PCIe 接受数据流量，PP传输与TP对比   |
 | DCGM | \*DCGM_FI_PROF_PCIE_RX_BYTES<br>                      | PCIe 发送数据流量，平均字节速率      |
 关于 Prometheus 配置，以及 Prometheus + DCGM 的详细讨论，参考 [12-prometheus + DCGM](/docs/12-Prometheus+DCGM.md)
+
 ## 3. Grafana Dashboard 面板
 
 Prometheus 抓取指标数据之后，按时序存放到本地时序数据库 TSDB 中。Grafana 通过访问 Prometheus 服务器，进行 PromQL 查询获取指标数据，然后通过 Dashboard JSON 配置的 Panel 在前端展现出来。
@@ -769,10 +793,11 @@ DCGM 和 DCGM-Exporter 的讨论，详见 [18-DCGM & DCGM-Exporter](/docs/analys
 Prometheus + DCGM + Grafana 的架构讨论，详见 [Prometheus + Grafana + DCGM](/docs/analysis%20&%20research/20-Prometheus+Grafana+DCGM.md)
 
 # Phase 13: Locust 压力测试
----
+
 
 HeteroServe 的监控架构搭建完成后，对其做压力测试，评估系统在多种场景下的性能表现，分析性能拐点。我们使用开源的性能压测工具 Locust，模拟多用户并发访问 HeteroServe 推理服务。
 关于 Locust 压力测试的详细讨论，参考 [Locust 压测测试](/docs/analysis%20&%20research/21-Locust%20压力测试.md)
+
 ## 1. Loucst 压测设计
 
 我们主要测试三类场景，HeteroServe 的性能表现。A场景是短对话，模拟短输入 + 短输出 + 高并发场景。B 场景是 RAG 长上下文，模拟 长输入 + 中输出 + 中并发。 C场景是推理场景，让LLM推理求解数学题，模拟短输入 + 长输出 + 小并发。这三类场景覆盖了我们日常使用的大多数任务特点，短对话，长上下文，高强度推理。
@@ -790,6 +815,7 @@ HeteroServe 的监控架构搭建完成后，对其做压力测试，评估系�
 三个场景，分别运行在 LLM 并发限制数为 8，16，32，64 下。一共12个测试用例。
 
 关于 Locust 压力测试的详细设计，参考 [Locust-stress-testing#Locust压测设计](/docs/14-Locust-stress-testing.md)
+
 ## 2. 测试结果
 
 每个测试用例我们都会得到一个 Locust 输出的 HTML 性能测试报告，Locust Test Report。以及一个 Grafana 面板输出的性能时序图。
@@ -828,6 +854,7 @@ HeteroServe 系统完整的测试结果数据如下：
 | HTTP 连接数              | 50   | 20    | 10      | 50    | 20   | 10      | 50   | 20    | 10      | 50    | 20    | 10      |
 
 完整的测试结果，参考 [Locust-stress-testing#Locust压测结果](/docs/14-Locust-stress-testing.md)
+
 ## 3. 测试分析
 
 heteroserve 系统处理 prompt 的吞吐量和推理生成的吞吐量，极限都在 660 tokens/s 左右。实际速度还要受并发限制，处理请求开销等因素的影响。推理生成 token 的速度，还与任务的难度相关.
@@ -848,6 +875,7 @@ HeteroServe 系统整体表现，总结如下：
 | GPU 功耗              | 20w / 220w                      | 闲置 / 满载             |
 | Nginx HTTP 请求速率     | 3.5 / 1.7/ 0.5                  | 短对话 / 长文本 / 长推理     |
 | 5xx 错误率             | 0                               | HTTP 各种场景下，连接成率100% |
+
 ## 4. 结论
 
 HeterServe 系统在短文本，长上下文，长推理的场景下，都有良好的表现. 在合理规划推理任务是，能够获得较好的 tokens 吞吐量。TTFT 和 TPOT 有较好表现，重点是要尽量避免请求排队。KV Cache 命中率较高，显存的利用效率很高。整个系统的软硬件运行都非常稳定，GPU 各项指标表现都正常，GPU 充分利用并且运行稳定。HeteroServe 是一个性能良好的生产级推理平台。 
@@ -855,7 +883,7 @@ HeterServe 系统在短文本，长上下文，长推理的场景下，都有良
 完整的测试设计，结果报告，测试分析，测试结论，参考 [14-Locust-stress-testing](/docs/14-Locust-stress-testing.md)
 
 # Phase 14 : SLI / SLO 服务质量定义
----
+
 
 SLI (Service Level Indicators) , 表示服务层面系统表现指标。SLO(Service Level Objectives)，表示在服务层面表现，目标达到什么样的水平。
 
@@ -875,7 +903,7 @@ SLI (Service Level Indicators) , 表示服务层面系统表现指标。SLO(Serv
 | 并发容量         | P99 不恶化并发          | < 64     |
 
 # Phase 15 : Gradio-Demo 实时演示
----
+
 
 HeteroServe 前端，使用 Gradio 进行实时演示。关于 Gradio 的介绍详见 [22-Gradio](/docs/analysis%20&%20research/22-Gradio.md)
 
@@ -907,7 +935,7 @@ HeteroServe 的实时演示视频如下
 完整详细的视频演示，参考[heteroserve-demo-app.mp4](/demo-app.mp4)
 
 # Phase 16 : Runbook 故障演练  
----
+
 
 在 HeteroServe 运行过程中，我们遇到很多故障。故障原因分析和问题解决思路是非常重要的工程经验，目前为止，我们遇到的主要故障和问题，总结如下：
 
@@ -928,7 +956,7 @@ HeteroServe 的实时演示视频如下
 
 # Phase 17: HeteroServe 系统架构图
 
----
+
 ```mermaid
 %%{init: { 'theme': 'neutral', 'themeVariables': {'scale': 1.0}}}%%
 flowchart LR
